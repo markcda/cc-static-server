@@ -1,0 +1,5 @@
+/artifacts
+/logs
+/target
+.directory
+Cargo.lock
