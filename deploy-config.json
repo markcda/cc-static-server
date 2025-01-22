@@ -25,6 +25,33 @@
       "tags": [],
       "actions": [
         {
+          "title": "Cargo Fmt",
+          "desc": "Format `.rs` files",
+          "info": "cargo-fmt@0.1.0",
+          "tags": [
+            "rust",
+            "cargo",
+            "fmt"
+          ],
+          "action": {
+            "PreBuild": {
+              "supported_langs": [
+                "Rust"
+              ],
+              "commands": [
+                {
+                  "bash_c": "cargo fmt",
+                  "ignore_fails": false,
+                  "show_success_output": false,
+                  "show_bash_c": true,
+                  "only_when_fresh": false
+                }
+              ]
+            }
+          },
+          "exec_in_project_dir": true
+        },
+        {
           "title": "Sync script to know Rust package version",
           "desc": "",
           "info": "sync-rust-crate-ver@0.1.0",
@@ -62,6 +89,59 @@
               "Exists": "/bin/cargo"
             }
           ]
+        },
+        {
+          "title": "UPX Compress",
+          "desc": "Compress the binary with UPX.",
+          "info": "upx-compress@0.1.0",
+          "tags": [
+            "upx"
+          ],
+          "action": {
+            "PostBuild": {
+              "supported_langs": [
+                "Rust",
+                "Go",
+                "C",
+                "Cpp"
+              ],
+              "commands": [
+                {
+                  "bash_c": "upx <af>",
+                  "placeholders": [
+                    "<af>"
+                  ],
+                  "replacements": [
+                    [
+                      [
+                        "<af>",
+                        {
+                          "title": "target/release/cc-static-server",
+                          "is_secret": false,
+                          "value": {
+                            "Plain": "target/release/cc-static-server"
+                          }
+                        }
+                      ]
+                    ]
+                  ],
+                  "ignore_fails": false,
+                  "show_success_output": false,
+                  "show_bash_c": true,
+                  "only_when_fresh": false
+                }
+              ]
+            }
+          },
+          "requirements": [
+            {
+              "ExistsAny": [
+                "~/.local/bin/upx",
+                "/usr/bin/upx"
+              ]
+            }
+          ],
+          "exec_in_project_dir": false
         },
         {
           "title": "Auto-upload CC Static Server to Deployer's Storage",
@@ -102,5 +182,6 @@
       "static-server.yaml",
       "static-server.yaml"
     ]
-  ]
+  ],
+  "version": 2
 }
