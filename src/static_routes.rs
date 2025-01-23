@@ -7,7 +7,7 @@ const CONTAINER_FRONTEND_DISTRIBUTABLE: &str = "/usr/local/frontend-dist/";
 
 pub async fn get_filepath_from_dist(filename: impl Into<String>) -> MResult<String> {
   let filename = filename.into();
-  tracing::debug!("Пытаемся получить доступ к файлу {}", filename);
+  tracing::debug!("Trying to get access to {}", filename);
 
   let filepath = format!("{}{}", CONTAINER_FRONTEND_DISTRIBUTABLE, &filename);
   if tokio::fs::try_exists(&filepath).await? {
@@ -19,7 +19,7 @@ pub async fn get_filepath_from_dist(filename: impl Into<String>) -> MResult<Stri
   }
 
   Err(
-    ErrorResponse::from(format!(r#"Не удалось открыть файл "{}""#, filename))
+    ErrorResponse::from(format!(r#"Can't open file "{}""#, filename))
       .with_404_pub()
       .build(),
   )
@@ -42,15 +42,18 @@ pub async fn frontend(req: &Request) -> MResult<Html> {
 #[handler]
 #[tracing::instrument(skip_all, fields(http.uri = req.uri().path(), http.method = req.method().as_str()))]
 pub async fn get_uikit_app_internals(req: &Request) -> MResult<AnyOf> {
-  let rest_path = req
-    .param::<String>("rest_path")
-    .ok_or("Не удалось получить остальной путь.")?;
-  match get_from_dist(rest_path).await {
+  let rest_path = req.param::<String>("rest_path").ok_or("Can't get the rest path.")?;
+  match get_from_dist(rest_path.as_str()).await {
     Ok(file) => Ok(AnyOf::File(file)),
-    Err(_) => match frontend::frontend(req).await {
-      Ok(html) => Ok(AnyOf::Html(html)),
-      Err(e) => Err(ErrorResponse::from(e).with_404_pub().build()),
-    },
+    Err(_) => {
+      if rest_path.contains(".") {
+        return Err(ErrorResponse::from("There is no such file!").with_404_pub().build());
+      }
+      match frontend::frontend(req).await {
+        Ok(html) => Ok(AnyOf::Html(html)),
+        Err(e) => Err(ErrorResponse::from(e).with_404_pub().build()),
+      }
+    }
   }
 }
 
@@ -72,5 +75,5 @@ impl salvo::Writer for AnyOf {
 pub fn frontend_router() -> Router {
   Router::new()
     .get(frontend)
-    .push(Router::with_path("<**rest_path>").get(get_uikit_app_internals))
+    .push(Router::with_path("{**rest_path}").get(get_uikit_app_internals))
 }
