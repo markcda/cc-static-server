@@ -13,12 +13,16 @@ pub async fn get_filepath_from_dist(filename: impl Into<String>) -> MResult<Stri
   let filepath = PathBuf::from(CONTAINER_FRONTEND_DISTRIBUTABLE).join(&filename);
   if tokio::fs::try_exists(&filepath).await.is_ok_and(|v| v) {
     return Ok(filepath.to_string_lossy().to_string());
+  } else {
+    tracing::debug!("There is no such file as {:?}", filepath);
   }
-  let filepath = PathBuf::from(std::env::current_exe()?)
-    .join(LOCAL_FRONTEND_DISTRIBUTABLE)
-    .join(&filename);
+  let mut filepath = PathBuf::from(std::env::current_exe()?);
+  filepath.pop();
+  let filepath = filepath.join(LOCAL_FRONTEND_DISTRIBUTABLE).join(&filename);
   if tokio::fs::try_exists(&filepath).await.is_ok_and(|v| v) {
     return Ok(filepath.to_string_lossy().to_string());
+  } else {
+    tracing::debug!("There is no such file as {:?}", filepath);
   }
 
   Err(
