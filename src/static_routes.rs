@@ -1,21 +1,24 @@
 use cc_server_kit::cc_utils;
 use cc_server_kit::cc_utils::prelude::*;
 use cc_server_kit::prelude::*;
+use std::path::PathBuf;
 
-const LOCAL_FRONTEND_DISTRIBUTABLE: &str = "dist/";
-const CONTAINER_FRONTEND_DISTRIBUTABLE: &str = "/usr/local/frontend-dist/";
+const LOCAL_FRONTEND_DISTRIBUTABLE: &str = "dist";
+const CONTAINER_FRONTEND_DISTRIBUTABLE: &str = "/usr/local/frontend-dist";
 
 pub async fn get_filepath_from_dist(filename: impl Into<String>) -> MResult<String> {
   let filename = filename.into();
   tracing::debug!("Trying to get access to {}", filename);
 
-  let filepath = format!("{}{}", CONTAINER_FRONTEND_DISTRIBUTABLE, &filename);
-  if tokio::fs::try_exists(&filepath).await? {
-    return Ok(filepath);
+  let filepath = PathBuf::from(CONTAINER_FRONTEND_DISTRIBUTABLE).join(&filename);
+  if tokio::fs::try_exists(&filepath).await.is_ok_and(|v| v) {
+    return Ok(filepath.to_string_lossy().to_string());
   }
-  let filepath = format!("{}{}", LOCAL_FRONTEND_DISTRIBUTABLE, &filename);
-  if tokio::fs::try_exists(&filepath).await? {
-    return Ok(filepath);
+  let filepath = PathBuf::from(std::env::current_exe()?)
+    .join(LOCAL_FRONTEND_DISTRIBUTABLE)
+    .join(&filename);
+  if tokio::fs::try_exists(&filepath).await.is_ok_and(|v| v) {
+    return Ok(filepath.to_string_lossy().to_string());
   }
 
   Err(

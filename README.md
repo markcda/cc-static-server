@@ -19,3 +19,12 @@ Or, alternatively, just build with `cargo`:
 ```bash
 cargo build --release
 ```
+
+## Usage
+
+1. Place your files inside `dist` folder.
+2. Place `cc-static-server` executable near `dist` folder.
+3. Start `./cc-static-server`.
+
+> [!NOTE]
+> There is no need to specify working dir, static server must work with distribution files placed nearly.
