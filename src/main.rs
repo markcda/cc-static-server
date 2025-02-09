@@ -3,9 +3,11 @@
 mod static_routes;
 
 use cc_server_kit::prelude::*;
+use serde::Deserialize;
 
-#[derive(Default, Clone)]
+#[derive(Deserialize, Default, Clone)]
 struct Setup {
+  #[serde(flatten)]
   generic_values: GenericValues,
 }
 
@@ -13,8 +15,8 @@ impl GenericSetup for Setup {
   fn generic_values(&self) -> &GenericValues {
     &self.generic_values
   }
-  fn set_generic_values(&mut self, generic_values: GenericValues) {
-    self.generic_values = generic_values;
+  fn generic_values_mut(&mut self) -> &mut GenericValues {
+    &mut self.generic_values
   }
 }
 
